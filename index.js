@@ -8,18 +8,18 @@ const port = 3001;
 app.use(cors());
 app.use(express.json());
 
-// 1. הגדרת החיבור למסד הנתונים
+ החיבור למסד הנתונים
 const db = mysql.createPool({
   host: "127.0.0.1",
   user: "root",
-  password: "root", // <--- שים כאן את הסיסמה שבחרת בהתקנה!
+  password: "root",
   database: "company_meetings",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
 });
 
-// בדיקה שהחיבור עובד
+
 db.getConnection((err, connection) => {
   if (err) {
     console.error("Error connecting to database:", err.message);
@@ -29,9 +29,6 @@ db.getConnection((err, connection) => {
   }
 });
 
-// --- Routes (נתיבים) ---
-
-// סעיף 2.א: החזרת כל קבוצות הפיתוח
 app.get("/api/teams", (req, res) => {
   const sql = "SELECT * FROM development_teams";
   db.query(sql, (err, results) => {
@@ -44,9 +41,7 @@ app.get("/api/teams", (req, res) => {
   });
 });
 
-// --- סעיף 2.ב: החזרת כל הפגישות של קבוצה לפי קוד קבוצה ---
 app.get("/api/meetings/:teamId", (req, res) => {
-  // :teamId הוא פרמטר דינמי שנקבל מהכתובת
   const teamId = req.params.teamId;
   const sql = "SELECT * FROM meetings WHERE team_id = ?";
 
@@ -60,21 +55,13 @@ app.get("/api/meetings/:teamId", (req, res) => {
   });
 });
 
-// --- סעיף 2.ג + בונוס: הוספת פגישה חדשה עם בדיקת חפיפה ---
-// --- גרסה מתוקנת לדיבאג: הוספת פגישה עם בדיקת חפיפה ---
 app.post("/api/meetings", (req, res) => {
 let { team_id, start_time, end_time, description, room_name } = req.body;
 
-    // --- התיקון הקריטי מתחיל כאן ---
-    // הסרת האות T והחלפתה ברווח, כדי ש-MySQL יבין שזה תאריך ושעה
-    // (React שולח: "2026-02-13T10:00", MySQL רוצה: "2026-02-13 10:00")
     if (start_time) start_time = start_time.replace('T', ' ');
     if (end_time) end_time = end_time.replace('T', ' ');
-    // --- התיקון מסתיים כאן ---
-
     console.log("----- DEBUG -----");
     console.log("Checking Time for SQL:", start_time, "->", end_time); 
-    // עכשיו תוכלי לראות בטרמינל בדיוק מה נשלח לבדיקה
 
     const checkSql = `
         SELECT * FROM meetings 
@@ -82,7 +69,6 @@ let { team_id, start_time, end_time, description, room_name } = req.body;
         AND start_time < ? 
         AND end_time > ?
     `;
-  // הערה: סדר הפרמטרים קריטי! [team_id, end_time, start_time]
   db.query(
     checkSql,
     [team_id, end_time, start_time],
@@ -94,7 +80,6 @@ let { team_id, start_time, end_time, description, room_name } = req.body;
 
       console.log("Conflicts found (number of meetings):", checkResults.length);
 
-      // אם המערך לא ריק - סימן שמצאנו פגישה חופפת
       if (checkResults.length > 0) {
         console.log("CONFLICT DETECTED! Rejecting request.");
         return res.status(409).json({
@@ -104,7 +89,6 @@ let { team_id, start_time, end_time, description, room_name } = req.body;
 
       console.log("No conflict. Saving meeting...");
 
-      // אם אין חפיפה - שומרים
       const insertSql = `
             INSERT INTO meetings (team_id, start_time, end_time, description, room_name)
             VALUES (?, ?, ?, ?, ?)
@@ -129,7 +113,6 @@ let { team_id, start_time, end_time, description, room_name } = req.body;
   );
 });
 
-// הרצת השרת
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
