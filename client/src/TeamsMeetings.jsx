@@ -8,10 +8,11 @@ import {
     Select, 
     MenuItem, 
     Box,
-    Card,          
-    CardContent,  
-    Grid,           
-    Chip          
+    Card,
+    CardContent,
+    Grid,
+    Chip,
+    Divider    
 } from '@mui/material';
 
 function TeamsMeetings() {
@@ -49,11 +50,32 @@ function TeamsMeetings() {
     // פונקציה שמופעלת כשבוחרים קבוצה מהרשימה
     const handleTeamChange = (event) => {
         setSelectedTeamId(event.target.value);
-        // כאן בהמשך נוסיף את הקריאה להבאת הפגישות...
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleString('en-GB'); // פורמט יום/חודש/שנה ושעה
+        return new Date(dateString).toLocaleString('en-GB', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        }); 
+    };
+
+    // פונקציה לחישוב משך הפגישה
+   const getDuration = (start, end) => {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        
+        // ההפרש באלפיות שנייה
+        const diffInMs = endDate - startDate;
+        
+        const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+        
+        const hours = Math.floor(diffInMinutes / 60);
+        const minutes = diffInMinutes % 60;
+
+        if (hours > 0) {
+            return `${hours} hours ${minutes > 0 ? `and ${minutes} minutes` : ''}`;
+        }
+        return `${minutes} minutes`;
     };
 
     return (
@@ -91,7 +113,7 @@ function TeamsMeetings() {
                             <CardContent>
                                 {/* כותרת החדר עם עיצוב */}
                                 <Chip label={meeting.room_name} color="primary" size="small" sx={{ mb: 1 }} />
-                                
+                                <Chip label={getDuration(meeting.start_time, meeting.end_time)} variant="outlined" color="warning" size="small" sx={{ mb: 1 }} />
                                 <Typography variant="h6" component="div">
                                     {meeting.description}
                                 </Typography>
