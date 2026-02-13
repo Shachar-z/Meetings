@@ -1,0 +1,118 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios'; // ספרייה לביצוע בקשות לשרת
+import { 
+    Container, 
+    Typography, 
+    FormControl, 
+    InputLabel, 
+    Select, 
+    MenuItem, 
+    Box,
+    Card,          
+    CardContent,  
+    Grid,           
+    Chip          
+} from '@mui/material';
+
+function TeamsMeetings() {
+    // State 1: רשימת הקבוצות שמגיעה מהשרת
+    const [teams, setTeams] = useState([]);
+
+    // State 2: הקבוצה שהמשתמש בחר כרגע (ID)
+    const [selectedTeamId, setSelectedTeamId] = useState('');
+
+
+    const [meetings, setMeetings] = useState([]);
+
+    // useEffect - רץ פעם אחת בלבד כשהרכיב עולה לדף
+    useEffect(() => {
+        // פנייה לשרת לקבלת הקבוצות
+        axios.get('http://localhost:3001/api/teams')
+            .then(response => {
+                // עדכון ה-State עם הנתונים שחזרו
+                setTeams(response.data);
+            })
+            .catch(error => {
+                console.error("Error fetching teams:", error);
+            });
+    }, []); // הסוגריים הריקים מבטיחים שזה ירוץ רק פעם אחת
+
+// 2. useEffect חדש - רץ בכל פעם ש-selectedTeamId משתנה!
+    useEffect(() => {
+        if (selectedTeamId) {
+            axios.get(`http://localhost:3001/api/meetings/${selectedTeamId}`)
+                .then(response => setMeetings(response.data))
+                .catch(error => console.error("Error fetching meetings:", error));
+        }
+    }, [selectedTeamId]); // <--- התלות: הקוד ירוץ כשהמשתנה הזה ישתנה
+
+    // פונקציה שמופעלת כשבוחרים קבוצה מהרשימה
+    const handleTeamChange = (event) => {
+        setSelectedTeamId(event.target.value);
+        // כאן בהמשך נוסיף את הקריאה להבאת הפגישות...
+    };
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleString('en-GB'); // פורמט יום/חודש/שנה ושעה
+    };
+
+    return (
+        <Container maxWidth="md">
+            <Typography variant="h4" gutterBottom sx={{ mt: 4, mb: 2 }}>
+                Teams Schedule
+            </Typography>
+
+            <Box sx={{ minWidth: 120, mb: 4, backgroundColor: 'white', borderRadius: 1 }}>
+                <FormControl fullWidth>
+                    <InputLabel>Choose Team</InputLabel>
+                    <Select
+                        value={selectedTeamId}
+                        label="Choose Team"
+                        onChange={handleTeamChange}
+                    >
+                        {teams.map((team) => (
+                            <MenuItem key={team.team_id} value={team.team_id}>
+                                {team.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            </Box>
+
+            {/* 3. הצגת הפגישות */}
+            <Typography variant="h5" gutterBottom>
+                {selectedTeamId ? 'Appointments:' : 'Select a team to see appointments'}
+            </Typography>
+
+            <Grid container spacing={2}>
+                {meetings.map((meeting) => (
+                    <Grid item xs={12} sm={6} key={meeting.meeting_id}>
+                        <Card variant="outlined" sx={{ boxShadow: 3 }}>
+                            <CardContent>
+                                {/* כותרת החדר עם עיצוב */}
+                                <Chip label={meeting.room_name} color="primary" size="small" sx={{ mb: 1 }} />
+                                
+                                <Typography variant="h6" component="div">
+                                    {meeting.description}
+                                </Typography>
+                                
+                                <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                    From: {formatDate(meeting.start_time)}
+                                    <br />
+                                    To: {formatDate(meeting.end_time)}
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
+            
+            {/* הודעה אם אין פגישות */}
+            {selectedTeamId && meetings.length === 0 && (
+                <Typography color="text.secondary">No meetings found for this team.</Typography>
+            )}
+        </Container>
+    );
+}
+
+export default TeamsMeetings;
