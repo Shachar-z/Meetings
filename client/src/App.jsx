@@ -14,9 +14,9 @@ function App() {
 
             <Box component="img" src={logo} alt="Company Logo"
             sx={{ 
-              height: 65,       // גובה הלוגו (תשחקי עם זה אם הוא גדול/קטן מדי)
-              marginRight: 2,   // רווח מהטקסט
-              display: { xxs: 'none', md: 'block' } // מוסתר בנייד, מוצג במסך גדול
+              height: 65,   
+              marginRight: 2, 
+              display: { xxs: 'none', md: 'block' }
             }} 
           />
 
@@ -24,7 +24,7 @@ function App() {
           Meetings Calander
             </Typography>
 
-            {/* כפתורי ניווט */}
+           
           <Button color="inherit" component={Link} to="/" fontWeight="Bold">
             Teams & Meetings
           </Button>
@@ -36,9 +36,9 @@ function App() {
 
       <Container sx={{ marginTop: 4 }}>
         <Routes>
-          {/* נתיב לדף הראשי */}
+         
           <Route path="/" element={<TeamsMeetings/>} />
-          {/* נתיב לדף הוספת פגישה */}
+         
           <Route path="/add-meeting" element={<AddMeeting />} />
         </Routes>
       </Container>
