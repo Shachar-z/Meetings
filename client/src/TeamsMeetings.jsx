@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios'; // ספרייה לביצוע בקשות לשרת
+import axios from 'axios'; 
 import { 
     Container, 
     Typography, 
@@ -16,38 +16,27 @@ import {
 } from '@mui/material';
 
 function TeamsMeetings() {
-    // State 1: רשימת הקבוצות שמגיעה מהשרת
     const [teams, setTeams] = useState([]);
-
-    // State 2: הקבוצה שהמשתמש בחר כרגע (ID)
     const [selectedTeamId, setSelectedTeamId] = useState('');
-
-
     const [meetings, setMeetings] = useState([]);
 
-    // useEffect - רץ פעם אחת בלבד כשהרכיב עולה לדף
     useEffect(() => {
-        // פנייה לשרת לקבלת הקבוצות
         axios.get('http://localhost:3001/api/teams')
             .then(response => {
-                // עדכון ה-State עם הנתונים שחזרו
                 setTeams(response.data);
             })
             .catch(error => {
                 console.error("Error fetching teams:", error);
             });
-    }, []); // הסוגריים הריקים מבטיחים שזה ירוץ רק פעם אחת
+    }, []); 
 
-// 2. useEffect חדש - רץ בכל פעם ש-selectedTeamId משתנה!
     useEffect(() => {
         if (selectedTeamId) {
             axios.get(`http://localhost:3001/api/meetings/${selectedTeamId}`)
                 .then(response => setMeetings(response.data))
                 .catch(error => console.error("Error fetching meetings:", error));
         }
-    }, [selectedTeamId]); // <--- התלות: הקוד ירוץ כשהמשתנה הזה ישתנה
-
-    // פונקציה שמופעלת כשבוחרים קבוצה מהרשימה
+    }, [selectedTeamId]); 
     const handleTeamChange = (event) => {
         setSelectedTeamId(event.target.value);
     };
@@ -59,12 +48,10 @@ function TeamsMeetings() {
         }); 
     };
 
-    // פונקציה לחישוב משך הפגישה
    const getDuration = (start, end) => {
         const startDate = new Date(start);
         const endDate = new Date(end);
         
-        // ההפרש באלפיות שנייה
         const diffInMs = endDate - startDate;
         
         const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
@@ -101,7 +88,6 @@ function TeamsMeetings() {
                 </FormControl>
             </Box>
 
-            {/* 3. הצגת הפגישות */}
             <Typography variant="h5" gutterBottom>
                 {selectedTeamId ? 'Appointments:' : 'Select a team to see appointments'}
             </Typography>
@@ -111,7 +97,6 @@ function TeamsMeetings() {
                     <Grid item xs={12} sm={6} key={meeting.meeting_id}>
                         <Card variant="outlined" sx={{ boxShadow: 3 }}>
                             <CardContent>
-                                {/* כותרת החדר עם עיצוב */}
                                 <Chip label={meeting.room_name} color="primary" size="small" sx={{ mb: 1 }} />
                                 <Chip label={getDuration(meeting.start_time, meeting.end_time)} variant="outlined" color="warning" size="small" sx={{ mb: 1 }} />
                                 <Typography variant="h6" component="div">
@@ -129,7 +114,6 @@ function TeamsMeetings() {
                 ))}
             </Grid>
             
-            {/* הודעה אם אין פגישות */}
             {selectedTeamId && meetings.length === 0 && (
                 <Typography color="text.secondary">No meetings found for this team.</Typography>
             )}
