@@ -19,7 +19,7 @@ body {
   background: linear-gradient( #4653e2, #ca8585);
   margin: 0;
   padding: 0;
-  display: block; /* Vite לפעמים מגדיר כאן flex שממרכז הכל */
+  display: block; 
   width: 100%;
   min-height: 100vh;
 
