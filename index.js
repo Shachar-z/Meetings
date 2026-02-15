@@ -8,7 +8,6 @@ const port = 3001;
 app.use(cors());
 app.use(express.json());
 
- החיבור למסד הנתונים
 const db = mysql.createPool({
   host: "127.0.0.1",
   user: "root",
